@@ -23,7 +23,7 @@ pub struct Game {
     player: Player,
     rock_move_interval: u16,
     rock_gen_interval: u16,
-    score: u16,
+    score: u32,
 }
 
 impl Game {
@@ -61,6 +61,7 @@ impl Game {
             let now = Instant::now();
             wait_for_rock_gen -= 1;
             wait_for_rock_move -= 1;
+            self.score += 1;
 
             while now.elapsed() < INTERVAL {
                 if let Some(command) = self.get_command(INTERVAL - now.elapsed()) {
@@ -180,6 +181,7 @@ impl Game {
         self.draw_background();
         self.draw_rock();
         self.draw_player();
+        self.draw_score();
     }
 
     fn prepare_ui(&mut self) {
@@ -200,8 +202,14 @@ impl Game {
         disable_raw_mode().unwrap();
     }
 
+    fn draw_score(&mut self) {
+        self.stdout
+                .execute(MoveTo(self.width / 2, self.height + 2)).unwrap()
+                .execute(Print(self.score.to_string())).unwrap();
+    }
+
     fn draw_player(&mut self) {
-        let fg = SetForegroundColor(match 0 { // 후에 점수에 따라 바뀌도록 수정 해야함.
+        let fg = SetForegroundColor(match (self.score / 10) % 3 { // 후에 점수에 따라 바뀌도록 수정 해야함.
             0 => Color::Green,
             1 => Color::Cyan,
             _ => Color::Yellow
